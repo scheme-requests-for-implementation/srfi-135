@@ -35,7 +35,7 @@
 
    make-text             text
    text-tabulate
-   textual-unfold        textual-unfold-right
+   text-unfold           text-unfold-right
 
    ;; Conversion
 
@@ -82,7 +82,8 @@
 
    ;; Case conversion
 
-   textual-upcase        textual-downcase     textual-foldcase
+   textual-upcase        textual-downcase
+   textual-foldcase      textual-titlecase
 
    ;; Concatenation
 
@@ -107,6 +108,16 @@
           (scheme case-lambda)
           (scheme char)
           (srfi 135 kernel8))
+
+  (cond-expand
+   ((library (rnrs unicode))
+    (import (only (rnrs unicode) string-titlecase)))
+   ((library (srfi 129))
+    (import (only (srfi 129) string-titlecase)))
+   (else
+    (begin
+     (define (string-titlecase s)
+       (%string-titlecase s)))))
 
   ;; textual-replicate needs a sensible mod procedure
 

@@ -161,15 +161,15 @@
 ;;; These next two procedures take care to accumulate texts of
 ;;; the kernel's preferred size, N.
 
-(define textual-unfold
+(define text-unfold
   (case-lambda
    ((stop? mapper succ seed)
-    (textual-unfold stop? mapper succ seed (text) (lambda (x) (text))))
+    (text-unfold stop? mapper succ seed (text) (lambda (x) (text))))
    ((stop? mapper succ seed base)
-    (textual-unfold stop? mapper succ seed base (lambda (x) (text))))
+    (text-unfold stop? mapper succ seed base (lambda (x) (text))))
    ((stop? mapper succ seed base make-final)
     (let* ((txt (textual->text (if (char? base) (text base) base)
-                               'textual-unfold
+                               'text-unfold
                                stop? mapper succ seed base make-final))
            (k (%text-length txt)))
       (let loop ((k k)
@@ -192,7 +192,7 @@
                                    ((string? final) (string->text final))
                                    ((text? final) final)
                                    (else
-                                    (%bad-final 'textual-unfold final)))))
+                                    (%bad-final 'text-unfold final)))))
                  (textual-concatenate-reverse texts final)))
               (else
                (let ((x (mapper seed)))
@@ -212,19 +212,19 @@
                               (append (reverse (textual->list x)) chars)
                               (succ seed)))
                        (else
-                        (complain 'textual-unfold
+                        (complain 'text-unfold
                                   stop? mapper succ seed
                                   base make-final)))))))))))
 
-(define textual-unfold-right
+(define text-unfold-right
   (case-lambda
    ((stop? mapper succ seed)
-    (textual-unfold-right stop? mapper succ seed (text) (lambda (x) (text))))
+    (text-unfold-right stop? mapper succ seed (text) (lambda (x) (text))))
    ((stop? mapper succ seed base)
-    (textual-unfold-right stop? mapper succ seed base (lambda (x) (text))))
+    (text-unfold-right stop? mapper succ seed base (lambda (x) (text))))
    ((stop? mapper succ seed base make-final)
     (let* ((txt (textual->text (if (char? base) (text base) base)
-                               'textual-unfold-right
+                               'text-unfold-right
                                stop? mapper succ seed base make-final))
            (k (%text-length txt)))
       (let loop ((k k)
@@ -246,7 +246,7 @@
                                    ((string? final) (string->text final))
                                    ((text? final) final)
                                    (else
-                                    (%bad-final 'textual-unfold-right
+                                    (%bad-final 'text-unfold-right
                                                 final)))))
                  (textual-concatenate (cons final texts))))
               (else
@@ -267,7 +267,7 @@
                               (append (textual->list x) chars)
                               (succ seed)))
                        (else
-                        (complain 'textual-unfold-right
+                        (complain 'text-unfold-right
                                   stop? mapper succ seed
                                   base make-final)))))))))))
 
@@ -483,7 +483,7 @@
          (endianness (or endianness bom 'big))
          (hibits (if (eq? endianness 'big) 0 1))
          (lobits (- 1 hibits)))
-    (textual-unfold
+    (text-unfold
      (lambda (i) (>= i end))
      (lambda (i)
        (let* ((high (bytevector-u8-ref bv (+ i hibits)))
@@ -1132,6 +1132,15 @@
         (else
          (complain 'textual-foldcase txt))))
 
+(define (textual-titlecase txt)
+  (cond ((string? txt)
+         (string->text (string-titlecase txt)))
+        ((text? txt)
+         (string->text
+          (string-titlecase (textual->string txt))))
+        (else
+         (complain 'textual-titlecase txt))))
+
 (define (%text-upcase txt)
   (let* ((n (%text-length txt)))
 
@@ -1222,6 +1231,32 @@
                       (fast (+ i 1) texts (cons c chars))))))))
 
     (fastest 0)))
+
+;;; This is a fake version of string-titlecase, to be used only
+;;; if there is no Unicode-conforming version available.
+
+(cond-expand
+ ((and (not (library (rnrs unicode)))
+       (not (library (srfi 129))))
+  (define (%string-titlecase s)
+    (let* ((s (string-copy (string-foldcase s)))
+           (n (string-length s)))
+      (define (first-character-of-word! i)
+        (if (< i n)
+          (let ((c (string-ref s i)))
+            (if (char-whitespace? c)
+                (first-character-of-word! (+ i 1))
+                (begin (string-set! s i (char-upcase c))
+                       (subsequent-character! (+ i 1)))))))
+      (define (subsequent-character! i)
+        (if (< i n)
+          (let ((c (string-ref s i)))
+            (if (char-whitespace? c)
+                (first-character-of-word! (+ i 1))
+                (subsequent-character! (+ i 1))))))
+      (first-character-of-word! 0)
+      s)))
+ (else))      
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

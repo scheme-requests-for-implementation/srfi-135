@@ -311,8 +311,8 @@ Here is a list of the procedures provided by this SRFI:
 <dd class="proc-index">
 <pre class="proc-index">
 <a href="#make-text">make-text</a>             <a href="#text">text</a>
-<a href="#textual-tabulate">text-tabulate</a>
-<a href="#textual-unfold">textual-unfold</a>        <a href="#textual-unfold-right">text-unfold-right</a>
+<a href="#text-tabulate">text-tabulate</a>
+<a href="#text-unfold">text-unfold</a>           <a href="#text-unfold-right">text-unfold-right</a>
 </pre>
 </dd>
 
@@ -381,7 +381,8 @@ Here is a list of the procedures provided by this SRFI:
 <dt class="proc-index"> Case conversion</dt>
 <dd class="proc-index">
 <pre class="proc-index">
-<a href="#textual-upcase">textual-upcase</a>        <a href="#textual-downcase">textual-downcase</a>        <a href="#textual-foldcase">textual-foldcase</a>
+<a href="#textual-upcase">textual-upcase</a>        <a href="#textual-downcase">textual-downcase</a>
+<a href="#textual-foldcase">textual-foldcase</a>      <a href="#textual-titlecase">textual-titlecase</a>
 </pre>
 </dd>
 
@@ -634,9 +635,11 @@ When feasible, implementations of this SRFI should also consider:
       external syntax recommended for immutable texts;</li>
   <li>extending the <code>read</code> procedure to accept the
       external syntax recommended for immutable texts;</li>
-  <li>extending interpreters and compilers to accept literals
-      expressed using the external syntax recommended
-      for immutable texts.</li>
+  <li>extending interpreters and compilers to accept quoted
+      literals expressed using the external syntax recommended
+      for immutable texts; R7RS section 4.1.2 mandates this
+      extension if <code>read</code> is extended to accept
+      the external syntax for texts.</li>
 </ul>
 
 <p>
@@ -719,7 +722,8 @@ The procedures of this SRFI follow
 a consistent naming scheme, and are consistent with the conventions
 developed in SRFI 1 and used in SRFI 13 and SRFI 130.
 Indeed, most of the names specified here were derived from SRFI 130's
-names by replacing <code>string</code> with <code>text</code>.
+names by replacing <code>string</code> with <code>text</code> or
+<code>textual</code>.
 As in SRFI 130,
 procedures that have left/right directional variants
 use no suffix to specify left-to-right operation,
@@ -1124,11 +1128,11 @@ and might even vary from call to call.
 </dd>
 
 <!--
-==== textual-tabulate
+==== text-tabulate
 ============================================================================-->
 <dt class="proc-def">
-<a name="textual-tabulate"></a>
-<code class="proc-def">textual-tabulate</code><var> proc len → text</var>
+<a name="text-tabulate"></a>
+<code class="proc-def">text-tabulate</code><var> proc len → text</var>
 </dt>
 <dd class="proc-def">
     <var>Proc</var> is a procedure that accepts an exact integer
@@ -1142,11 +1146,11 @@ and might even vary from call to call.
 
 
 <!--
-==== textual-unfold
+==== text-unfold
 ============================================================================-->
 <dt class="proc-def">
-<a name="textual-unfold"></a>
-<code class="proc-def">textual-unfold</code><var> stop? mapper successor seed [base make-final] → text</var>
+<a name="text-unfold"></a>
+<code class="proc-def">text-unfold</code><var> stop? mapper successor seed [base make-final] → text</var>
 </dt>
 <dd class="proc-def">
 This is a fundamental constructor for texts. 
@@ -1176,30 +1180,30 @@ This is a fundamental constructor for texts.
 </ul>
 
 <p>
-<code>textual-unfold</code> is a fairly powerful text constructor.
+<code>text-unfold</code> is a fairly powerful text constructor.
 You can use it to
 convert a list to a text, read a port into a text, reverse a text,
 copy a text, and so forth. Examples:
 </p>
 <pre class="code-example">
-(port-&gt;text p) = (textual-unfold eof-object?
-                              values
-                              (lambda (x) (read-char p))
-                              (read-char p))
+(port-&gt;text p) = (text-unfold eof-object?
+                           values
+                           (lambda (x) (read-char p))
+                           (read-char p))
 
-(list-&gt;text lis) = (textual-unfold null? car cdr lis)
+(list-&gt;text lis) = (text-unfold null? car cdr lis)
 
-(textual-tabulate f size) = (textual-unfold (lambda (i) (= i size)) f add1 0)
+(text-tabulate f size) = (text-unfold (lambda (i) (= i size)) f add1 0)
 </pre>
 <p>
 To map <var>f</var> over a list <var>lis</var>, producing a text:
 <pre class="code-example">
-(textual-unfold null? (compose f car) cdr lis)
+(text-unfold null? (compose f car) cdr lis)
 </pre>
 <p>
 Interested functional programmers may enjoy noting that 
 <code>textual-fold-right</code> 
-and <code>textual-unfold</code> are in some sense inverses.
+and <code>text-unfold</code> are in some sense inverses.
 That is, given operations 
 <var>knull?</var>, <var>kar</var><var>, kdr</var>, <var>kons</var>,
 and <var>knil</var> satisfying
@@ -1211,11 +1215,11 @@ and <var>knil</var> satisfying
 then
 </p>
 <pre class="code-example">
-(textual-fold-right <var>kons</var> <var>knil</var> (textual-unfold <var>knull?</var> <var>kar</var> <var>kdr</var> <var>x</var>)) = <var>x</var>
+(textual-fold-right <var>kons</var> <var>knil</var> (text-unfold <var>knull?</var> <var>kar</var> <var>kdr</var> <var>x</var>)) = <var>x</var>
 </pre>
 and
 <pre class="code-example">
-(textual-unfold <var>knull?</var> <var>kar</var> <var>kdr</var> (textual-fold-right <var>kons</var> <var>knil</var> <var>text</var>)) = <var>text</var>.
+(text-unfold <var>knull?</var> <var>kar</var> <var>kdr</var> (textual-fold-right <var>kons</var> <var>knil</var> <var>text</var>)) = <var>text</var>.
 </pre>
 
 <p>
@@ -1224,33 +1228,33 @@ This combinator pattern is sometimes called an "anamorphism."
 
 <p>
 <i>Note:</i> Implementations should not allow the size of texts created
-by <code>textual-unfold</code> to be limited by limits on stack size.
+by <code>text-unfold</code> to be limited by limits on stack size.
 </p>
 </dd>
 
 
 <!--
-==== textual-unfold-right
+==== text-unfold-right
 ============================================================================-->
 <dt class="proc-def">
-<a name="textual-unfold-right"></a>
-<code class="proc-def">textual-unfold-right</code><var> stop? mapper successor seed [base make-final] → text</var>
+<a name="text-unfold-right"></a>
+<code class="proc-def">text-unfold-right</code><var> stop? mapper successor seed [base make-final] → text</var>
 </dt>
 <dd class="proc-def">
     This is a fundamental constructor for texts.
-    It is the same as <code>textual-unfold</code>
+    It is the same as <code>text-unfold</code>
     except the results of <var>mapper</var> are assembled into the
     text in right-to-left order,
     <var>base</var> is the optional rightmost portion
     of the constructed text, and <var>make-final</var>
     produces the leftmost portion of the constructed text.
 <pre class="code-example">
-(textual-unfold-right (lambda (n) (&lt; n (char->integer #\A)))
-                      (lambda (n) (char-downcase (integer-&gt;char n)))
-                      (lambda (n) (- n 1))
-                      (char->integer #\Z)
-                      #\space
-                      (lambda (n) " The English alphabet: "))
+(text-unfold-right (lambda (n) (&lt; n (char->integer #\A)))
+                   (lambda (n) (char-downcase (integer-&gt;char n)))
+                   (lambda (n) (- n 1))
+                   (char->integer #\Z)
+                   #\space
+                   (lambda (n) " The English alphabet: "))
     =&gt; « The English alphabet: abcdefghijklmnopqrstuvwxyz »
 </pre>
 </dd>
@@ -2068,23 +2072,28 @@ This indicates a useful value is returned when there is a match.
 <dl>
 
 <!--
-==== textual-upcase textual-downcase textual-foldcase
+==== textual-upcase textual-downcase textual-foldcase textual-titlecase
 ============================================================================-->
 <dt class="proc-def1">
 <a name="textual-upcase"></a>
 <a name="textual-downcase"></a>
 <a name="textual-foldcase"></a>
+<a name="textual-titlecase"></a>
 <code class="proc-def">textual-upcase&nbsp;&nbsp;</code><var> textual → text</var>
 </dt>
 <dt class="proc-defi">
 <code class="proc-def">textual-downcase</code><var> textual → text</var>
 </dt>
-<dt class="proc-defn">
+<dt class="proc-defi">
 <code class="proc-def">textual-foldcase</code><var> textual → text</var>
+</dt>
+<dt class="proc-defn">
+<code class="proc-def">textual-titlecase</code><var> textual → text</var>
 </dt>
 <dd class="proc-def">
     These procedures return the text obtained by applying
-    Unicode's full uppercasing, lowercasing, or case-folding algorithms
+    Unicode's full uppercasing, lowercasing,  case-folding, or
+    title-casing algorithms
     to their argument.  In some cases, the length of the result may
     be different from the length of the argument.
     Note that language-sensitive mappings and foldings are not used.

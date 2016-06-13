@@ -61,8 +61,8 @@
   (syntax-rules ()
     ((_ expr1 expr ...)
      (begin (set! current-test 'expr1)
-;;          (write current-test)
-;;          (newline)
+            ;;          (write current-test)
+            ;;          (newline)
             (or expr1 expr ...)))))
 
 ;;; Help functions for testing.
@@ -243,74 +243,74 @@
 
 (or (result=? "abc"
               (let ((p (open-input-string "abc")))
-                (textual-unfold eof-object?
-                                values
-                                (lambda (x) (read-char p))
-                                (read-char p))))
-    (fail 'textual-unfold))
+                (text-unfold eof-object?
+                             values
+                             (lambda (x) (read-char p))
+                             (read-char p))))
+    (fail 'text-unfold))
 
-(or (result=? "" (textual-unfold null? car cdr '()))
-    (fail 'textual-unfold))
+(or (result=? "" (text-unfold null? car cdr '()))
+    (fail 'text-unfold))
 
 (or (result=? "abc"
-              (textual-unfold null? car cdr (string->list "abc")))
-    (fail 'textual-unfold))
+              (text-unfold null? car cdr (string->list "abc")))
+    (fail 'text-unfold))
 
 (or (result=? "def"
-              (textual-unfold null? car cdr '() (string->text "def")))
-    (fail 'textual-unfold))
+              (text-unfold null? car cdr '() (string->text "def")))
+    (fail 'text-unfold))
 
 (or (result=? "defabcG"
-              (textual-unfold null?
-                              car
-                              cdr
-                              (string->list "abc")
-                              (string->text "def")
-                              (lambda (x) (and (null? x) (text #\G)))))
-    (fail 'textual-unfold))
+              (text-unfold null?
+                           car
+                           cdr
+                           (string->list "abc")
+                           (string->text "def")
+                           (lambda (x) (and (null? x) (text #\G)))))
+    (fail 'text-unfold))
 
-(or (result=? "" (textual-unfold-right null? car cdr '()))
-    (fail 'textual-unfold-right))
+(or (result=? "" (text-unfold-right null? car cdr '()))
+    (fail 'text-unfold-right))
 
 (or (result=? "cba"
-              (textual-unfold-right null? car cdr (string->list "abc")))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null? car cdr (string->list "abc")))
+    (fail 'text-unfold-right))
 
 (or (result=? "def"
-              (textual-unfold-right null? car cdr '() (string->text "def")))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null? car cdr '() (string->text "def")))
+    (fail 'text-unfold-right))
 
 (or (result=? "Gcbadef"
-              (textual-unfold-right null?
-                                    car
-                                    cdr
-                                    (string->list "abc")
-                                    (string->text "def")
-                                    (lambda (x) (and (null? x) (text #\G)))))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null?
+                                 car
+                                 cdr
+                                 (string->list "abc")
+                                 (string->text "def")
+                                 (lambda (x) (and (null? x) (text #\G)))))
+    (fail 'text-unfold-right))
 
 
 (or (result=? "def"
-              (textual-unfold null? car cdr '() "def"))
-    (fail 'textual-unfold))
+              (text-unfold null? car cdr '() "def"))
+    (fail 'text-unfold))
 
 (or (result=? "defabcG"
-              (textual-unfold null?
-                              car
-                              cdr
-                              (string->list "abc")
-                              "def"
-                              (lambda (x) (and (null? x) "G"))))
-    (fail 'textual-unfold))
+              (text-unfold null?
+                           car
+                           cdr
+                           (string->list "abc")
+                           "def"
+                           (lambda (x) (and (null? x) "G"))))
+    (fail 'text-unfold))
 
 (or (result=? "dabcG"
-              (textual-unfold null?
-                              car
-                              cdr
-                              (string->list "abc")
-                              #\d
-                              (lambda (x) (and (null? x) "G"))))
-    (fail 'textual-unfold))
+              (text-unfold null?
+                           car
+                           cdr
+                           (string->list "abc")
+                           #\d
+                           (lambda (x) (and (null? x) "G"))))
+    (fail 'text-unfold))
 
 (or (result=? (string-append "%="
                              (make-string 200 #\*)
@@ -322,39 +322,39 @@
                                           #\*)
                              "abcdefghijklmnopqrstuvwxyz"
                              " ")
-              (textual-unfold (lambda (n) (char>? (integer->char n) #\z))
-                              (lambda (n)
-                                (let ((c (integer->char n)))
-                                  (cond ((char<=? #\a c #\z) c)
-                                        ((char<=? #\A c #\Z) (text c #\space))
-                                        (else (make-string 200 #\*)))))
-                              (lambda (n) (+ n 1))
-                              (char->integer #\@)
-                              "%="
-                              (lambda (n) #\space)))
-    (fail 'textual-unfold))
+              (text-unfold (lambda (n) (char>? (integer->char n) #\z))
+                           (lambda (n)
+                             (let ((c (integer->char n)))
+                               (cond ((char<=? #\a c #\z) c)
+                                     ((char<=? #\A c #\Z) (text c #\space))
+                                     (else (make-string 200 #\*)))))
+                           (lambda (n) (+ n 1))
+                           (char->integer #\@)
+                           "%="
+                           (lambda (n) #\space)))
+    (fail 'text-unfold))
 
 (or (result=? "def"
-              (textual-unfold-right null? car cdr '() "def"))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null? car cdr '() "def"))
+    (fail 'text-unfold-right))
 
 (or (result=? "Gcbadef"
-              (textual-unfold-right null?
-                                    car
-                                    cdr
-                                    (string->list "abc")
-                                    "def"
-                                    (lambda (x) (and (null? x) "G"))))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null?
+                                 car
+                                 cdr
+                                 (string->list "abc")
+                                 "def"
+                                 (lambda (x) (and (null? x) "G"))))
+    (fail 'text-unfold-right))
 
 (or (result=? "Gcbad"
-              (textual-unfold-right null?
-                                    car
-                                    cdr
-                                    (string->list "abc")
-                                    #\d
-                                    (lambda (x) (and (null? x) "G"))))
-    (fail 'textual-unfold-right))
+              (text-unfold-right null?
+                                 car
+                                 cdr
+                                 (string->list "abc")
+                                 #\d
+                                 (lambda (x) (and (null? x) "G"))))
+    (fail 'text-unfold-right))
 
 (or (result=? (string-append " "
                              (list->string
@@ -368,7 +368,7 @@
                              "M L K J I H G F E D C B A "
                              (make-string 200 #\*)
                              "%=")
-              (textual-unfold-right
+              (text-unfold-right
                (lambda (n) (char>? (integer->char n) #\z))
                (lambda (n)
                  (let ((c (integer->char n)))
@@ -379,17 +379,17 @@
                (char->integer #\@)
                "%="
                (lambda (n) #\space)))
-    (fail 'textual-unfold-right))
+    (fail 'text-unfold-right))
 
 (or (result=? " The English alphabet: abcdefghijklmnopqrstuvwxyz "
-              (textual-unfold-right (lambda (n) (< n (char->integer #\A)))
-                                    (lambda (n)
-                                      (char-downcase (integer->char n)))
-                                    (lambda (n) (- n 1))
-                                    (char->integer #\Z)
-                                    #\space
-                                    (lambda (n) " The English alphabet: ")))
-    (fail 'textual-unfold-right))
+              (text-unfold-right (lambda (n) (< n (char->integer #\A)))
+                                 (lambda (n)
+                                   (char-downcase (integer->char n)))
+                                 (lambda (n) (- n 1))
+                                 (char->integer #\Z)
+                                 #\space
+                                 (lambda (n) " The English alphabet: ")))
+    (fail 'text-unfold-right))
 
 
 ;;; Conversion
@@ -3357,6 +3357,11 @@
 
 (or (result=? "1234strikes" (textual-foldcase (as-text "1234STRIKES")))
     (fail 'textual-foldcase))
+
+(or (result=? "And With Three Strikes You're Out"
+              (textual-titlecase
+               (as-text "and with THREE STRIKES you're oUT")))
+    (fail 'textual-titlecase))
 
 ;;; Concatenation
 

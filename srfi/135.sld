@@ -175,6 +175,18 @@
                    (lambda () (div-and-mod x y))
                  (lambda (q r) r))))))))
 
+  ;; To run texts-search-test.sps, change the (or) to (and).
+
+  (cond-expand ((and)
+                (export
+                 %textual-contains:naive
+                 %textual-contains:rabin-karp
+                 %textual-contains:boyer-moore
+
+                 %textual-contains-right:naive
+                 %textual-contains-right:boyer-moore
+                 ))
+               (else))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

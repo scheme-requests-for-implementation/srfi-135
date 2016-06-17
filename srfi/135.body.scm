@@ -1034,8 +1034,6 @@
 (define (textual-skip-right txt pred . rest)
   (apply textual-index-right txt (lambda (x) (not (pred x))) rest))
 
-;;; FIXME: naive search for now
-
 (define (textual-contains t1 t2 . rest0)
   (let* ((txt1 (textual->text t1 'textual-contains t1 t2))
          (txt2 (textual->text t2 'textual-contains t1 t2))
@@ -1055,17 +1053,125 @@
              (exact-integer? end2)
              (<= 0 start1 end1 (%text-length txt1))
              (<= 0 start2 end2 (%text-length txt2)))
-        (let* ((n1 (- end1 start1))
-               (n2 (- end2 start2))
-               (lim1 (- end1 n2)))
-          (let loop ((i start1))
-            (cond ((> i lim1)
-                   #f)
-                  ((textual-prefix? txt2 txt1 start2 end2 i end1)
-                   i)
-                  (else
-                   (loop (+ i 1))))))
+        (%textual-contains txt1 txt2 start1 end1 start2 end2)
         (apply complain 'textual-contains t1 t2 rest0))))
+
+;;; No checking needed here.
+;;;
+;;; Naive search works well when
+;;;     txt1 is very short
+;;;     txt2 is very short
+;;;     txt2 is almost as long as txt1
+;;; Boyer-Moore-Horspool search works well when
+;;;     txt2 is very short
+;;;     txt1 is considerably longer than txt2, txt2 is not too short,
+;;;         and the rightmost character of txt2 is distinct from
+;;;         (in its low 8 bits) from several characters that precede it
+;;; Rabin-Karp works reasonably well all the time, so is used when
+;;;     neither naive search nor Boyer-Moore-Horspool do well
+
+(define %threshold:short1 10)   ; is txt1 shorter than this?
+(define %threshold:short2 3)    ; is txt2 shorter than this?
+(define %threshold:longer 1)    ; is txt1 at least this much longer?
+(define %threshold:rightmost 2) ; are rightmost characters the same?
+
+(define (%textual-contains txt1 txt2 start1 end1 start2 end2)
+  (let ((n1 (- end1 start1))
+        (n2 (- end2 start2)))
+    (cond ((< n1 %threshold:short1)
+           (%textual-contains:naive txt1 txt2 start1 end1 start2 end2))
+          ((< (- n1 n2) %threshold:longer)
+           (%textual-contains:naive txt1 txt2 start1 end1 start2 end2))
+          ((< n2 %threshold:short2)
+           (%textual-contains:boyer-moore txt1 txt2 start1 end1 start2 end2))
+          ((and (> n2 %threshold:rightmost)
+                (let ((j (remainder (char->integer (text-ref txt2 (- end2 1)))
+                                    128)))
+                  (let loop ((i (- end2 %threshold:rightmost)))
+                    (cond ((= i (- end2 1))
+                           #t)
+                          ((= j
+                              (remainder (char->integer (text-ref txt2 i))
+                                         128))
+                           #f)
+                          (else
+                           (loop (+ i 1)))))))
+           (%textual-contains:boyer-moore txt1 txt2 start1 end1 start2 end2))
+          (else
+           (%textual-contains:rabin-karp txt1 txt2 start1 end1 start2 end2)))))
+
+(define (%textual-contains:naive txt1 txt2 start1 end1 start2 end2)
+  (let* ((n1 (- end1 start1))
+         (n2 (- end2 start2))
+         (lim1 (- end1 n2)))
+    (let loop ((i start1))
+      (cond ((> i lim1)
+             #f)
+            ((textual-prefix? txt2 txt1 start2 end2 i end1)
+             i)
+            (else
+             (loop (+ i 1)))))))
+
+(define (%textual-contains:rabin-karp txt1 txt2 start1 end1 start2 end2)
+  (define (hash txt start end)
+    (do ((i start (+ i 1))
+         (h 0 (+ h (char->integer (text-ref txt i)))))
+        ((= i end)
+         h)))
+  (let* ((n1 (- end1 start1))
+         (n2 (- end2 start2))
+         (lim1 (- end1 n2))
+         (h1 (hash txt1 start1 (min (+ start1 n2) end1)))
+         (h2 (hash txt2 start2 end2)))
+    (let loop ((i start1)
+               (h1 h1))
+      (cond ((> i lim1)
+             #f)
+            ((and (= h1 h2)
+                  (textual-prefix? txt2 txt1 start2 end2 i end1))
+             i)
+            ((= i lim1)
+             #f)
+            (else
+             (loop (+ i 1)
+                   (+ (- h1 (char->integer (text-ref txt1 i)))
+                      (char->integer (text-ref txt1 (+ i n2))))))))))
+
+;;; This is actually the Boyer-Moore-Horspool algorithm,
+;;; but the name is already pretty long.
+
+(define (%textual-contains:boyer-moore txt1 txt2 start1 end1 start2 end2)
+  (if (= start2 end2)
+      start1
+      (let* ((n1 (- end1 start1))
+             (n2 (- end2 start2))
+             (lim1 (- end1 n2))
+             (lastchar (text-ref txt2 (- end2 1)))
+             (lastj (remainder (char->integer lastchar) 128))
+             (table (make-vector 128 n2)))
+        (do ((i 0 (+ i 1)))
+            ((>= i (- n2 1)))
+          (let* ((c  (text-ref txt2 (+ i start2)))
+                 (cp (char->integer c))
+                 (j  (remainder cp 128)))
+            (vector-set! table j (- n2 i 1))))
+        (let loop ((i start1))
+          (if (>= i lim1)
+              (if (and (= i lim1)
+                       (textual-prefix? txt2 txt1 start2 end2 i end1))
+                  i
+                  #f)
+              (let* ((c  (text-ref txt1 (+ i n2 -1)))
+                     (cp (char->integer c))
+                     (j  (remainder cp 128)))
+                (cond ((not (char=? c lastchar))
+                       (loop (+ i (vector-ref table j))))
+                      ((textual-prefix? txt2 txt1 start2 end2 i end1)
+                       i)
+                      (else
+                       (loop (+ i (vector-ref table lastj)))))))))))
+
+;;; FIXME: no Rabin-Karp algorithm for now
 
 (define (textual-contains-right t1 t2 . rest0)
   (let* ((txt1 (textual->text t1 'textual-contains-right t1 t2))
@@ -1086,17 +1192,69 @@
              (exact-integer? end2)
              (<= 0 start1 end1 (%text-length txt1))
              (<= 0 start2 end2 (%text-length txt2)))
-        (let* ((n1 (- end1 start1))
-               (n2 (- end2 start2))
-               (lim1 (- end1 n2)))
-          (let loop ((i lim1))
-            (cond ((< i start1)
-                   #f)
-                  ((textual-prefix? txt2 txt1 start2 end2 i end1)
-                   i)
-                  (else
-                   (loop (- i 1))))))
+        (%textual-contains-right txt1 txt2 start1 end1 start2 end2)
         (apply complain 'textual-contains-right t1 t2 rest0))))
+
+(define (%textual-contains-right txt1 txt2 start1 end1 start2 end2)
+  (let ((n1 (- end1 start1))
+        (n2 (- end2 start2)))
+    (cond ((< n1 %threshold:short1)
+           (%textual-contains-right:naive
+            txt1 txt2 start1 end1 start2 end2))
+          ((< (- n1 n2) %threshold:longer)
+           (%textual-contains-right:naive
+            txt1 txt2 start1 end1 start2 end2))
+          ((< n2 %threshold:short2)
+           (%textual-contains-right:boyer-moore
+            txt1 txt2 start1 end1 start2 end2))
+          (else
+           (%textual-contains-right:boyer-moore
+            txt1 txt2 start1 end1 start2 end2)))))
+
+(define (%textual-contains-right:naive txt1 txt2 start1 end1 start2 end2)
+  (let* ((n1 (- end1 start1))
+         (n2 (- end2 start2))
+         (lim1 (- end1 n2)))
+    (let loop ((i lim1))
+      (cond ((< i start1)
+             #f)
+            ((textual-prefix? txt2 txt1 start2 end2 i end1)
+             i)
+            (else
+             (loop (- i 1)))))))
+
+;;; This is actually the Boyer-Moore-Horspool algorithm,
+;;; but the name is already pretty long.
+
+(define (%textual-contains-right:boyer-moore txt1 txt2 start1 end1 start2 end2)
+  (if (= start2 end2)
+      end1
+      (let* ((n1 (- end1 start1))
+             (n2 (- end2 start2))
+             (firstchar (text-ref txt2 0))
+             (firstj (remainder (char->integer firstchar) 128))
+             (table (make-vector 128 n2)))
+        (do ((i (- n2 1) (- i 1)))
+            ((<= i 0))
+          (let* ((c  (text-ref txt2 (+ i start2)))
+                 (cp (char->integer c))
+                 (j  (remainder cp 128)))
+            (vector-set! table j i)))
+        (let loop ((i (- end1 n2)))
+          (if (<= i start1)
+              (if (and (= i start1)
+                       (textual-prefix? txt2 txt1 start2 end2 i end1))
+                  i
+                  #f)
+              (let* ((c  (text-ref txt1 i))
+                     (cp (char->integer c))
+                     (j  (remainder cp 128)))
+                (cond ((not (char=? c firstchar))
+                       (loop (- i (vector-ref table j))))
+                      ((textual-prefix? txt2 txt1 start2 end2 i end1)
+                       i)
+                      (else
+                       (loop (- i (vector-ref table firstj)))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -177,7 +177,7 @@
 
   ;; To run texts-search-test.sps, change the (or) to (and).
 
-  (cond-expand ((and)
+  (cond-expand ((or)
                 (export
                  %textual-contains:naive
                  %textual-contains:rabin-karp

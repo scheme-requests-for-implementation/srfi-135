@@ -1069,10 +1069,16 @@ and might even vary from call to call.
 <dd class="proc-def">
   <p>
     Checks to see if every/any character in <var>textual</var>
-    satisfies <var>pred</var>
+    satisfies <var>pred</var>,
     proceeding from left (index <var>start</var>)
     to right (index <var>end</var>).
-    The predicate is "witness-generating":
+    <code>textual-every</code> 
+    These procedures are short-circuiting:
+    if <var>pred</var> returns false, <code>textual-every</code>
+    does not call <var>pred</var> on subsequent characters;
+    if <var>pred</var> returns true, <code>textual-any</code>
+    does not call <var>pred</var> on subsequent characters;
+    Both procedures are "witness-generating":
   </o>
 
     <ul>
@@ -1524,7 +1530,7 @@ by <code>text-unfold</code> to be limited by limits on stack size.
   <code>textual-ref</code> returns the character at character index
   <var>idx</var>, using 0-origin indexing.
   These procedures are the generalizations of
-  <code>textual-length</code> and <code>textual-ref</code>
+  <code>text-length</code> and <code>text-ref</code>
   to accept strings as well as texts.
   If <var>textual</var> is a text, they must execute in O(1) time,
   but there is no such requirement if <var>textual</var> is a string.
@@ -1659,7 +1665,8 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 </dt>
 <dd class="proc-def">
     Returns a text of length <var>len</var> comprised of the characters
-    of <var>textual</var> padded on the left (right)
+    drawn from the given subrange of <var>textual</var>,
+    padded on the left (right)
     by as many occurrences of the character <var>char</var> as needed.
     If <var>textual</var> has more
     than <var>len</var> chars, it is truncated on the left (right)
@@ -1695,7 +1702,8 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <code class="proc-def">textual-trim-both&nbsp;</code><var> textual [pred start end] → text</var>
 </dt>
 <dd class="proc-defn">
-    Returns a text obtained from <var>textual</var> by skipping
+    Returns a text obtained from the given subrange of <var>textual</var>
+    by skipping
     over all characters on the left / on the right /
     on both sides that satisfy the second argument <var>pred</var>:
     <var>pred</var> defaults to <code>char-whitespace?</code>.
@@ -1841,8 +1849,9 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 
   <p>
     <i>Note:</i>
-    The orderings used by these comparison predicates may be different
-    from the orderings used by the corresponding comparisons on strings.
+    Implementations are encouraged to use the same orderings for texts
+    as are used by the corresponding comparisons on strings, but are
+    allowed to use different orderings.
   </p>
 
   <p>
@@ -2043,9 +2052,12 @@ specified by <var>start2</var> and <var>end2</var>?
 
 <p>
 Returns <code>#f</code> if there is no match.
+If <var>start2</var> = <var>end2</var>,
+<code>textual-contains</code> returns <var>start1</var> but
+<code>textual-contains-right</code> returns <var>end1</var>.
 Otherwise returns the index in <var>textual1</var>
-for the first character of the first/last match.
-That index lies within the half-open interval
+for the first character of the first/last match;
+that index lies within the half-open interval
 [<var>start1</var>,<var>end1</var>),
 and the match lies entirely within the 
 [<var>start1</var>,<var>end1</var>) range of <var>textual1</var>.
@@ -2189,6 +2201,9 @@ For example:
 This procedure is useful when constructing procedures that 
 accumulate character data into lists of textual buffers, and wish to
 convert the accumulated data into a single text when done.
+The optional <var>end</var> argument accomodates that use case
+when <var>final-textual</var> is a mutable string, and is allowed
+(for uniformity) when <var>final-textual</var> is an immutable text.
 </p>
 </dd>
 

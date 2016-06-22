@@ -9,6 +9,19 @@ larceny --path .. --r7rs --program kernel-benchmark.sps
 sagittarius -L .. -r7 kernel-benchmark.sps
 chibi-scheme -I .. kernel-benchmark.sps
 
+To run in Gauche, foment, or Kawa:
+
+mkdir /tmp/Gauche
+cp *.txt kernel-benchmark.sps /tmp/Gauche
+cp ../srfi/135/kernel8.sld ../srfi/135.sld /tmp/Gauche
+cp ../srfi/135/kernel8.body.scm ../srfi/135.body.scm /tmp/Gauche
+pushd /tmp/Gauche
+cat kernel8.sld 135.sld kernel-benchmark.sps > temp.scm
+gosh -r7 temp.scm
+foment temp.scm
+kawa temp.scm
+popd
+
 ================================================================
 
 Some general advice concerning the kernels:

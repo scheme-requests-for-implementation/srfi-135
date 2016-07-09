@@ -266,7 +266,7 @@
                            cdr
                            (string->list "abc")
                            (string->text "def")
-                           (lambda (x) (and (null? x) (text #\G)))))
+                           (lambda (x) (if (null? x) (text #\G) ""))))
     (fail 'text-unfold))
 
 (or (result=? "" (text-unfold-right null? car cdr '()))
@@ -286,7 +286,7 @@
                                  cdr
                                  (string->list "abc")
                                  (string->text "def")
-                                 (lambda (x) (and (null? x) (text #\G)))))
+                                 (lambda (x) (if (null? x) (text #\G) ""))))
     (fail 'text-unfold-right))
 
 
@@ -300,7 +300,7 @@
                            cdr
                            (string->list "abc")
                            "def"
-                           (lambda (x) (and (null? x) "G"))))
+                           (lambda (x) (if (null? x) "G" ""))))
     (fail 'text-unfold))
 
 (or (result=? "dabcG"
@@ -309,7 +309,7 @@
                            cdr
                            (string->list "abc")
                            #\d
-                           (lambda (x) (and (null? x) "G"))))
+                           (lambda (x) (if (null? x) "G" ""))))
     (fail 'text-unfold))
 
 (or (result=? (string-append "%="
@@ -344,7 +344,7 @@
                                  cdr
                                  (string->list "abc")
                                  "def"
-                                 (lambda (x) (and (null? x) "G"))))
+                                 (lambda (x) (if (null? x) "G" ""))))
     (fail 'text-unfold-right))
 
 (or (result=? "Gcbad"
@@ -353,7 +353,7 @@
                                  cdr
                                  (string->list "abc")
                                  #\d
-                                 (lambda (x) (and (null? x) "G"))))
+                                 (lambda (x) (if (null? x) "G" ""))))
     (fail 'text-unfold-right))
 
 (or (result=? (string-append " "
@@ -393,6 +393,27 @@
 
 
 ;;; Conversion
+
+(or (let ((txt (textual->text "str")))
+      (and (text? txt)
+           (textual=? txt "str")))
+    (fail 'textual->text))
+
+(or (let ((txt (textual->text (text #\s #\t #\r))))
+      (and (text? txt)
+           (textual=? txt "str")))
+    (fail 'textual->text))
+
+(or (let ((txt (textual->text "str" "not a textual")))
+      (and (text? txt)
+           (textual=? txt "str")))
+    (fail 'textual->text))
+
+(or (let ((txt (textual->text (text #\s #\t #\r) "bad textual")))
+      (and (text? txt)
+           (textual=? txt "str")))
+    (fail 'textual->text))
+
 
 (or (string=? "" (textual->string (text)))
     (fail 'textual->string))
@@ -3358,9 +3379,9 @@
 (or (result=? "1234strikes" (textual-foldcase (as-text "1234STRIKES")))
     (fail 'textual-foldcase))
 
-(or (result=? "And With Three Strikes You're Out"
+(or (result=? "And With Three Strikes You Are Out"
               (textual-titlecase
-               (as-text "and with THREE STRIKES you're oUT")))
+               (as-text "and with THREE STRIKES you are oUT")))
     (fail 'textual-titlecase))
 
 ;;; Concatenation
@@ -3496,7 +3517,6 @@
 
 (or (equal? 'horror
             (guard (exn (#t 'horror))
-                   
                    (textual-join '() "" 'strict-infix)))
     (fail 'textual-join))
 

@@ -52,7 +52,7 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-syntax textual->text
+(define-syntax %textual->text
   (syntax-rules ()
     ((_ x)
      (if (string? x)
@@ -76,7 +76,7 @@
   (syntax-rules ()
     ((_ (f textual arg . args) expr1 expr2 ...)
      (define (f textual arg . args)
-       (let ((textual (textual->text textual 'f textual arg)))
+       (let ((textual (%textual->text textual 'f textual arg)))
          expr1 expr2 ...)))))
 
 ;;; Several procedures take optional start and end arguments
@@ -98,17 +98,17 @@
               (lambda (args ... textual start end) expr1 expr2 ...)))
          (case-lambda
           ((args ... textual)
-           (let ((text (textual->text textual f args ... textual)))
+           (let ((text (%textual->text textual f args ... textual)))
              (f args ... text 0 (%text-length text))))
           ((args ... textual start)
-           (let* ((text (textual->text textual f args ... textual start))
+           (let* ((text (%textual->text textual f args ... textual start))
                   (n (%text-length text)))
              (if (and (exact-integer? start)
                       (<= 0 start n))
                  (f args ... text start n)
                  (complain 'f args ... textual start))))
           ((args ... textual start end)
-           (let* ((text (textual->text textual f args ... textual start end))
+           (let* ((text (%textual->text textual f args ... textual start end))
                   (n (%text-length text)))
              (if (and (exact-integer? start)
                       (exact-integer? end)
@@ -168,9 +168,9 @@
    ((stop? mapper succ seed base)
     (text-unfold stop? mapper succ seed base (lambda (x) (text))))
    ((stop? mapper succ seed base make-final)
-    (let* ((txt (textual->text (if (char? base) (text base) base)
-                               'text-unfold
-                               stop? mapper succ seed base make-final))
+    (let* ((txt (%textual->text (if (char? base) (text base) base)
+                                'text-unfold
+                                stop? mapper succ seed base make-final))
            (k (%text-length txt)))
       (let loop ((k k)
                  (texts (list txt))
@@ -223,9 +223,9 @@
    ((stop? mapper succ seed base)
     (text-unfold-right stop? mapper succ seed base (lambda (x) (text))))
    ((stop? mapper succ seed base make-final)
-    (let* ((txt (textual->text (if (char? base) (text base) base)
-                               'text-unfold-right
-                               stop? mapper succ seed base make-final))
+    (let* ((txt (%textual->text (if (char? base) (text base) base)
+                                'text-unfold-right
+                                stop? mapper succ seed base make-final))
            (k (%text-length txt)))
       (let loop ((k k)
                  (texts (list txt))
@@ -283,6 +283,15 @@
 ;;; FIXME: a lot of these could be made more efficient, especially
 ;;; when a string is passed instead of a text.
 
+(define (textual->text x . rest)
+  (cond ((string? x)
+         (string->text x))
+        ((text? x)
+         x)
+        ((null? rest)
+         (error "illegal argument passed to textual->text : " x))
+        (else (apply error rest))))
+
 (define textual->string
   (case-lambda
    ((txt)
@@ -294,7 +303,7 @@
         (substring txt start (string-length txt))
         (textual->string txt start (textual-length txt))))
    ((txt start end)
-    (let* ((txt (textual->text txt 'textual->string txt start end))
+    (let* ((txt (%textual->text txt 'textual->string txt start end))
            (n (- end start))
            (s (make-string n)))
       (do ((i start (+ i 1)))
@@ -569,16 +578,16 @@
 (define textual-pad
   (case-lambda
    ((txt len)
-    (let ((txt (textual->text txt 'textual-pad txt len)))
+    (let ((txt (%textual->text txt 'textual-pad txt len)))
       (%text-pad txt len #\space 0 (%text-length txt))))
    ((txt len c)
-    (let ((txt (textual->text txt 'textual-pad txt len c)))
+    (let ((txt (%textual->text txt 'textual-pad txt len c)))
       (%text-pad txt len c 0 (%text-length txt))))
    ((txt len c start)
-    (let ((txt (textual->text txt 'textual-pad txt len c start)))
+    (let ((txt (%textual->text txt 'textual-pad txt len c start)))
       (%text-pad txt len c start (%text-length txt))))
    ((txt len c start end)
-    (%text-pad (textual->text txt 'textual-pad txt len c start end)
+    (%text-pad (%textual->text txt 'textual-pad txt len c start end)
                len c start end))))
 
 (define (%text-pad txt len c start end)
@@ -610,16 +619,17 @@
 (define textual-pad-right
   (case-lambda
    ((txt len)
-    (let ((txt (textual->text txt 'textual-pad-right txt len)))
+    (let ((txt (%textual->text txt 'textual-pad-right txt len)))
       (%text-pad-right txt len #\space 0 (%text-length txt))))
    ((txt len c)
-    (let ((txt (textual->text txt 'textual-pad-right txt len c)))
+    (let ((txt (%textual->text txt 'textual-pad-right txt len c)))
       (%text-pad-right txt len c 0 (%text-length txt))))
    ((txt len c start)
-    (let ((txt (textual->text txt 'textual-pad-right txt len c start)))
+    (let ((txt (%textual->text txt 'textual-pad-right txt len c start)))
       (%text-pad-right txt len c start (%text-length txt))))
    ((txt len c start end)
-    (%text-pad-right (textual->text txt 'textual-pad-right txt len c start end)
+    (%text-pad-right (%textual->text txt
+                                     'textual-pad-right txt len c start end)
                      len c start end))))
 
 (define (%text-pad-right txt len c start end)
@@ -655,10 +665,10 @@
    ((txt pred)
     (textual-trim txt pred 0))
    ((txt pred start)
-    (let ((txt (textual->text txt 'textual-trim txt pred start)))
+    (let ((txt (%textual->text txt 'textual-trim txt pred start)))
       (%text-trim txt pred start (%text-length txt))))
    ((txt pred start end)
-    (let ((txt (textual->text txt 'textual-trim txt pred start end)))
+    (let ((txt (%textual->text txt 'textual-trim txt pred start end)))
       (%text-trim txt pred start end)))))
 
 (define (%text-trim txt pred start end)
@@ -682,10 +692,10 @@
    ((txt pred)
     (textual-trim-right txt pred 0))
    ((txt pred start)
-    (let ((txt (textual->text txt 'textual-trim-right txt pred start)))
+    (let ((txt (%textual->text txt 'textual-trim-right txt pred start)))
       (%text-trim-right txt pred start (%text-length txt))))
    ((txt pred start end)
-    (let ((txt (textual->text txt 'textual-trim-right txt pred start end)))
+    (let ((txt (%textual->text txt 'textual-trim-right txt pred start end)))
       (%text-trim-right txt pred start end)))))
 
 (define (%text-trim-right txt pred start end)
@@ -709,10 +719,10 @@
    ((txt pred)
     (textual-trim-both txt pred 0))
    ((txt pred start)
-    (let ((txt (textual->text txt 'textual-trim-both txt pred start)))
+    (let ((txt (%textual->text txt 'textual-trim-both txt pred start)))
       (%text-trim-both txt pred start (%text-length txt))))
    ((txt pred start end)
-    (let ((txt (textual->text txt 'textual-trim-both txt pred start end)))
+    (let ((txt (%textual->text txt 'textual-trim-both txt pred start end)))
       (%text-trim-both txt pred start end)))))
 
 ;;; This is efficient because subtext is fast.
@@ -751,8 +761,8 @@
 
 (define (make-nary-comparison name binop0)
   (let ((binop (lambda (a b)
-                 (let ((a (textual->text a name a b))
-                       (b (textual->text b name a b)))
+                 (let ((a (%textual->text a name a b))
+                       (b (%textual->text b name a b)))
                    (binop0 a b)))))
     (letrec ((loop (lambda (first rest)
                      (cond ((null? rest)
@@ -878,20 +888,20 @@
    ((x)
     (complain name x))
    ((t1 t2)
-    (let ((txt1 (textual->text t1 name t1 t2))
-          (txt2 (textual->text t2 name t1 t2)))
+    (let ((txt1 (%textual->text t1 name t1 t2))
+          (txt2 (%textual->text t2 name t1 t2)))
       (proc txt1 txt2 0 (%text-length txt1) 0 (%text-length txt2))))
    ((t1 t2 start1)
-    (let* ((txt1 (textual->text t1 name t1 t2))
-           (txt2 (textual->text t2 name t1 t2))
+    (let* ((txt1 (%textual->text t1 name t1 t2))
+           (txt2 (%textual->text t2 name t1 t2))
            (n1 (%text-length txt1)))
       (if (and (exact-integer? start1)
                (<= 0 start1 n1))
           (proc txt1 txt2 start1 n1 0 (%text-length txt2))
           (complain name t1 t2 start1))))
    ((t1 t2 start1 end1)
-    (let* ((txt1 (textual->text t1 name t1 t2))
-           (txt2 (textual->text t2 name t1 t2))
+    (let* ((txt1 (%textual->text t1 name t1 t2))
+           (txt2 (%textual->text t2 name t1 t2))
            (n1 (%text-length txt1)))
       (if (and (exact-integer? start1)
                (exact-integer? end1)
@@ -899,8 +909,8 @@
           (proc txt1 txt2 start1 end1 0 (%text-length txt2))
           (complain name t1 t2 start1 end1))))
    ((t1 t2 start1 end1 start2)
-    (let* ((txt1 (textual->text t1 name t1 t2))
-           (txt2 (textual->text t2 name t1 t2))
+    (let* ((txt1 (%textual->text t1 name t1 t2))
+           (txt2 (%textual->text t2 name t1 t2))
            (n1 (%text-length txt1))
            (n2 (%text-length txt2)))
       (if (and (exact-integer? start1)
@@ -911,8 +921,8 @@
           (proc txt1 txt2 start1 end1 start2 n2)
           (complain name t1 t2 start1 end1 start2))))
    ((t1 t2 start1 end1 start2 end2)
-    (let* ((txt1 (textual->text t1 name t1 t2))
-           (txt2 (textual->text t2 name t1 t2))
+    (let* ((txt1 (%textual->text t1 name t1 t2))
+           (txt2 (%textual->text t2 name t1 t2))
            (n1 (%text-length txt1))
            (n2 (%text-length txt2)))
       (if (and (exact-integer? start1)
@@ -1035,8 +1045,8 @@
   (apply textual-index-right txt (lambda (x) (not (pred x))) rest))
 
 (define (textual-contains t1 t2 . rest0)
-  (let* ((txt1 (textual->text t1 'textual-contains t1 t2))
-         (txt2 (textual->text t2 'textual-contains t1 t2))
+  (let* ((txt1 (%textual->text t1 'textual-contains t1 t2))
+         (txt2 (%textual->text t2 'textual-contains t1 t2))
          (rest rest0)
          (start1 (if (null? rest) 0 (car rest)))
          (rest (if (null? rest) rest (cdr rest)))
@@ -1174,8 +1184,8 @@
 ;;; FIXME: no Rabin-Karp algorithm for now
 
 (define (textual-contains-right t1 t2 . rest0)
-  (let* ((txt1 (textual->text t1 'textual-contains-right t1 t2))
-         (txt2 (textual->text t2 'textual-contains-right t1 t2))
+  (let* ((txt1 (%textual->text t1 'textual-contains-right t1 t2))
+         (txt2 (%textual->text t2 'textual-contains-right t1 t2))
          (rest rest0)
          (start1 (if (null? rest) 0 (car rest)))
          (rest (if (null? rest) rest (cdr rest)))
@@ -1434,9 +1444,9 @@
    ((texts final-textual end)
     (textual-concatenate-reverse texts
                                  (subtext
-                                  (textual->text final-textual
-                                                 'textual-concatenate-reverse
-                                                 texts final-textual end)
+                                  (%textual->text final-textual
+                                                  'textual-concatenate-reverse
+                                                  texts final-textual end)
                                   0 end)))))
 
 (define textual-join
@@ -1446,9 +1456,10 @@
    ((textuals delimiter)
     (textual-join textuals delimiter 'infix))
    ((textuals delimiter grammar)
-    (let* ((texts (map (lambda (t) (textual->text t 'textual-join textuals))
+    (let* ((texts (map (lambda (t) (%textual->text t 'textual-join textuals))
                        textuals))
-           (delimiter (textual->text delimiter 'textual-join textuals delimiter)))
+           (delimiter (%textual->text delimiter
+                                      'textual-join textuals delimiter)))
       (if (memq grammar '(infix strict-infix prefix suffix))
           (if (null? texts)
               (case grammar
@@ -1501,7 +1512,7 @@
     (%textual-mapn proc (cons txt1 (cons txt2 rest))))))
 
 (define (%textual-map1 proc txt)
-  (let ((txt (textual->text txt 'textual-map proc txt)))
+  (let ((txt (%textual->text txt 'textual-map proc txt)))
     (if (procedure? proc)
         (let ((n (%text-length txt)))
           (let loop ((i 0)
@@ -1531,7 +1542,7 @@
 (define (%textual-mapn proc textuals)
   (if (procedure? proc)
       (let* ((texts (map (lambda (txt)
-                           (textual->text txt 'textual-map textuals))
+                           (%textual->text txt 'textual-map textuals))
                          textuals))
              (n (apply min (map %text-length texts))))
         (let loop ((i 0)
@@ -1602,7 +1613,7 @@
     (%textual-for-eachn proc (cons txt1 (cons txt2 rest))))))
 
 (define (%textual-for-each1 proc txt)
-  (let ((txt (textual->text txt 'textual-for-each proc txt)))
+  (let ((txt (%textual->text txt 'textual-for-each proc txt)))
     (if (procedure? proc)
         (let ((n (%text-length txt)))
           (let loop ((i 0))
@@ -1614,7 +1625,7 @@
 (define (%textual-for-eachn proc textuals)
   (if (procedure? proc)
       (let* ((texts (map (lambda (txt)
-                           (textual->text txt 'textual-map textuals))
+                           (%textual->text txt 'textual-map textuals))
                          textuals))
              (n (apply min (map %text-length texts))))
         (let loop ((i 0))
@@ -1715,13 +1726,13 @@
 (define textual-replicate
   (case-lambda
    ((s from to start end)
-    (let ((s (textual->text s 'textual-replicate s from to start end)))
+    (let ((s (%textual->text s 'textual-replicate s from to start end)))
       (textual-replicate (subtext s start end) from to)))
    ((s from to start)
-    (let ((s (textual->text s 'textual-replicate s from to start)))
+    (let ((s (%textual->text s 'textual-replicate s from to start)))
       (textual-replicate (subtext s start (textual-length s)) from to)))
    ((s0 from to)
-    (let* ((s (textual->text s0 'textual-replicate s0 from to))
+    (let* ((s (%textual->text s0 'textual-replicate s0 from to))
            (n (- to from))
            (len (%text-length s)))
       (cond ((= n 0)
@@ -1752,9 +1763,10 @@
    ((s0 delimiter grammar limit)
     (define (bad-arguments)
       (complain 'textual-split s0 delimiter grammar limit))
-    (let* ((s (textual->text s0 'textual-split s0 delimiter grammar limit))
+    (let* ((s (%textual->text s0 'textual-split s0 delimiter grammar limit))
            (delimiter
-            (textual->text delimiter 'textual-split s0 delimiter grammar limit))
+            (%textual->text delimiter
+                            'textual-split s0 delimiter grammar limit))
            (limit (or limit (%text-length s)))
            (splits
             (cond ((= 0 (%text-length delimiter))

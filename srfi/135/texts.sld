@@ -41,6 +41,7 @@
 
    ;; Conversion
 
+   textual->text
    textual->string       textual->vector      textual->list
    string->text          vector->text         list->text    reverse-list->text
    textual->utf8         textual->utf16be

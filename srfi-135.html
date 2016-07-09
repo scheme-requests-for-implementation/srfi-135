@@ -190,6 +190,7 @@ William D Clinger
       <li><a href="#ConceptualModel">Conceptual model</a></li>
       <li><a href="#Subtypes">Subtypes</a></li>
       <li><a href="#ExternalRepresentation">External representation</a></li>
+      <li><a href="#TextualPorts">Textual input and output ports</a></li>
       <li><a href="#SharedStorage">Shared storage</a></li>
       <li><a href="#NamingConventions">Naming conventions</a></li>
       <li><a href="#PerformanceRequirements">Performance requirements</a></li>
@@ -274,22 +275,9 @@ strings.
 
 <h1><a name="Issues">Issues</a></h1>
 
-<ul>
-  <li>Although <code>textual-reverse</code> has been removed, some
-      of the other mapping procedures should probably be removed
-      as well.
-  </li>
-  <li>Textual input and output ports analogous to string input and
-      output ports would be nice, but they cannot be implemented
-      portably.  Leaving them for another SRFI allows all of this
-      SRFI to be implemented portably with reasonable efficiency.
-  </li>
-  <li><code>textual-index</code> and its three friends now return
-      <code>#f</code> when no match is found; their analogues in
-      SRFI 130 always return cursors.
-  </li>
-</ul>
-
+<p>
+None.
+</p>
 
 
 <!--========================================================================-->
@@ -320,6 +308,7 @@ Here is a list of the procedures provided by this SRFI:
 <dt class="proc-index"> Conversion</dt>
 <dd class="proc-index">
 <pre class="proc-index">
+<a href="#textual2text">textual-&gt;text</a>
 <a href="#text2string">textual-&gt;string</a>       <a href="#text2vector">textual-&gt;vector</a>         <a href="#text2list">textual-&gt;list</a>
 <a href="#string2text">string-&gt;text</a>          <a href="#vector2text">vector-&gt;text</a>            <a href="#list2text">list-&gt;text</a>
 <a href="#reverse-list2text">reverse-list-&gt;text</a>
@@ -650,6 +639,16 @@ should not rely on them.
 </p>
 
 
+<!--========================================================================-->
+<h3><a name="TextualPorts">Textual input and output ports</a></h3>
+
+<p>
+Textual input and output ports analogous to string input and
+output ports would be nice, but they too cannot be implemented
+portably.  Leaving them for another SRFI allows all of this
+SRFI to be implemented portably with reasonable efficiency.
+</p>
+
 
 <!--========================================================================-->
 <h3><a name="SharedStorage">Shared storage</a></h3>
@@ -730,6 +729,15 @@ procedures that have left/right directional variants
 use no suffix to specify left-to-right operation,
 <code>-right</code> to specify
 right-to-left operation, and <code>-both</code> to specify both.
+</p>
+
+<p>
+Note, however, that <code>textual-index</code>,
+<code>textual-index-right</code>,
+<code>textual-skip</code>, and
+<code>textual-skip-right</code>,
+return <code>#f</code> when no match is found.
+In SRFI 130, their analogues always return cursors.
 </p>
 
 <p>
@@ -1149,6 +1157,12 @@ and might even vary from call to call.
     to produce the corresponding element of the text.
     The order in which <var>proc</var> is called on those indexes is not
     specified.
+<p>
+    <i>Rationale:</i>
+    Although <code>text-unfold</code> is more general,
+    <code>text-tabulate</code> is likely to run faster
+    for the common special case it implements.
+</p>
 </dd>
 
 
@@ -1173,17 +1187,20 @@ This is a fundamental constructor for texts.
 <li> <var>stop?</var> tells us when to stop — when it returns
     true when applied to one of these seed values.</li>
 <li> <var>mapper</var> maps each seed value to the corresponding character(s)
-  in the result text; it must return a character, string, or text.
-  These chars are assembled into the
-  text in left-to-right order.</li>
+  in the result text, which are assembled into that text in left-to-right
+  order.
+  It is an error for <var>mapper</var> to return anything
+  other than a character, string, or text.</li>
 <li> <var>base</var> is the optional initial/leftmost portion of
-    the constructed text; it must be a text, string, or character, and
-    defaults to the empty text <code>(text)</code>.</li>
+    the constructed text, which defaults to the empty text <code>(text)</code>.
+    It is an error if <var>base</var> is anything other than a character,
+    string, or text.</li>
 <li> <var>make-final</var> is applied to the terminal seed value
     (on which <var>stop?</var> returns
-    true) to produce the final/rightmost portion of the constructed text,
-    which must be a text, string, or character.
-    It defaults to <code>(lambda (x) (text))</code>.</li>
+    true) to produce the final/rightmost portion of the constructed text.
+    It defaults to <code>(lambda (x) (text))</code>.
+    It is an error for <var>make-final</var> to return anything other
+    than a character, string, or text.</li>
 </ul>
 
 <p>
@@ -1273,6 +1290,20 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <h3><a name="Conversion">Conversion</a></h3>
           
 <dl>
+
+<!--
+==== textual->text
+============================================================================-->
+<dt class="proc-def1">
+<a name="textual2text"></a>
+<code class="proc-def">textual-&gt;text</code><var> textual → text</var>
+</dt>
+<dd class="proc-def">
+    When given a text, <code>textual-&gt;text</code> just returns that text.
+    When given a string, <code>textual-&gt;text</code> returns the result
+    of calling <code>string-&gt;text</code> on that string.
+    Signals an error when its argument is neither string nor text.
+</dd>
 
 <!--
 ==== textual->string textual->vector textual->list
@@ -1370,8 +1401,8 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <p>
     The bytevectors returned by <code>textual-&gt;utf16</code>
     begin with a BOM that declares an implementation-dependent
-    endianness, and the rest of those bytevectors are encoded
-    using that endianness.
+    endianness, and the bytevector elements following that BOM
+    encode the given subtext or substring using that endianness.
 </p>
 <p>
     <i>Rationale:</i>
@@ -1750,7 +1781,7 @@ by <code>text-unfold</code> to be limited by limits on stack size.
     is replaced by the segment of characters in <var>textual2</var>
     from <var>start2</var> to <var>end2</var>.
     If <var>start1</var>=<var>end1</var>, this simply splices
-    the characters drawn from <var>s2</var> into <var>textual1</var>
+    the characters drawn from <var>textual2</var> into <var>textual1</var>
     at that position.
   </p>
 
@@ -1786,11 +1817,11 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <dl>
 
 <!--
-==== text=?
+==== textual=?
 ============================================================================-->
 <dt class="proc-def">
 <a name="textual-equal-p"></a>
-<code class="proc-def">text=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dd class="proc-def">
     Returns <code>#t</code> if all the texts have the same length
@@ -1806,16 +1837,16 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <a name="textual-greater-p"></a>
 <a name="textual-leq-p"></a>
 <a name="textual-geq-p"></a>
-<code class="proc-def">text&lt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&lt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defi">
-<code class="proc-def">text&gt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&gt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defi">
-<code class="proc-def">text&lt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&lt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defn">
-<code class="proc-def">text&gt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&gt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dd class="proc-def">
     These procedures return <code>#t</code> if their arguments
@@ -1841,11 +1872,12 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 
   <p>
     In all cases, a pair of texts must satisfy exactly one of
-    <code>text&lt;?</code>, <code>text=?</code>, and <code>text&gt;?</code>,
-    must satisfy <code>text&lt;=?</code> if and only if
-    they do not satisfy <code>text&gt;?</code>, and
-    must satisfy <code>text&gt;=?</code> if and only if
-    they do not satisfy <code>text&lt;?</code>.
+    <code>textual&lt;?</code>, <code>textual=?</code>, and
+    <code>textual&gt;?</code>,
+    must satisfy <code>textual&lt;=?</code> if and only if
+    they do not satisfy <code>textual&gt;?</code>, and
+    must satisfy <code>textual&gt;=?</code> if and only if
+    they do not satisfy <code>textual&lt;?</code>.
   </p>
 
   <p>
@@ -2298,7 +2330,7 @@ when <var>final-textual</var> is a mutable string, and is allowed
 These are the fundamental iterators for texts.
 
 <p>
-The <code>left-fold</code> operator maps the <var>kons</var> procedure
+The <code>textual-fold</code> procedure maps the <var>kons</var> procedure
 across the given text or string from left to right:
 </p>
 <pre class="code-example">
@@ -2313,7 +2345,7 @@ In other words, <code>textual-fold</code> obeys the (tail) recursion
 </pre>
 <p>
 The <code>textual-fold-right</code> procedure maps <var>kons</var> across the
-text from right to left
+given text or string from right to left:
 </p>
 <pre class="code-example">
 (<var>kons</var> <var>textual</var>[0]

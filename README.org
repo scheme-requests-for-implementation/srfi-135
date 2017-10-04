@@ -6,7 +6,7 @@ This repository hosts [[https://srfi.schemers.org/srfi-135/][SRFI 135]]: Immutab
 
 This SRFI is in /final/ status.
 
-See also [[https://srfi.schemers.org/srfi-118/][SRFI 118: Simple adjustable-size strings]] and [[https://srfi.schemers.org/srfi-140/][SRFI 140: Immutable Strings]].
+See also [[https://srfi.schemers.org/srfi-118/][SRFI 118: Simple adjustable-size strings]], [[https://srfi.schemers.org/srfi-130/][SRFI 130: Cursor-based string library]], and [[https://srfi.schemers.org/srfi-152/][SRFI 152: String Library (reduced)]].
 
 The full documentation for this SRFI can be found in the [[https://srfi.schemers.org/srfi-135/srfi-135.html][SRFI Document]].
 

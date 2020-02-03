@@ -89,7 +89,8 @@
 
 (cond-expand ((or sagittarius
                   chibi
-                  full-unicode-strings)
+                  full-unicode-strings
+                  full-unicode)
               (define ABC
                 (as-text
                  (list->string (map integer->char

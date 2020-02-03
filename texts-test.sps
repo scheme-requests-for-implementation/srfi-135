@@ -404,16 +404,6 @@
            (textual=? txt "str")))
     (fail 'textual->text))
 
-(or (let ((txt (textual->text "str" "not a textual")))
-      (and (text? txt)
-           (textual=? txt "str")))
-    (fail 'textual->text))
-
-(or (let ((txt (textual->text (text #\s #\t #\r) "bad textual")))
-      (and (text? txt)
-           (textual=? txt "str")))
-    (fail 'textual->text))
-
 
 (or (string=? "" (textual->string (text)))
     (fail 'textual->string))

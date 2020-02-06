@@ -89,7 +89,8 @@
 
 (cond-expand ((or sagittarius
                   chibi
-                  full-unicode-strings)
+                  full-unicode-strings
+                  full-unicode)
               (define ABC
                 (as-text
                  (list->string (map integer->char
@@ -404,16 +405,6 @@
            (textual=? txt "str")))
     (fail 'textual->text))
 
-(or (let ((txt (textual->text "str" "not a textual")))
-      (and (text? txt)
-           (textual=? txt "str")))
-    (fail 'textual->text))
-
-(or (let ((txt (textual->text (text #\s #\t #\r) "bad textual")))
-      (and (text? txt)
-           (textual=? txt "str")))
-    (fail 'textual->text))
-
 
 (or (string=? "" (textual->string (text)))
     (fail 'textual->string))
@@ -636,27 +627,47 @@
     (fail 'textual->utf8))
 
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99)
+(define assumed-endianness
+  (let ((bom (textual->utf16 (as-text ""))))
+    (or (eqv? (bytevector-length bom) 2)
+        (fail 'textual->utf16))
+    (if (= (bytevector-u8-ref bom 0) 254)
+      'big
+      'little)))
+
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99)
+                '#u8(255 254 97 0 98 0 99 0))
             (textual->utf16 (as-text "abc")))
     (fail 'textual->utf16))
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99)
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99)
+                '#u8(255 254 97 0 98 0 99 0))
             (textual->utf16 "abc"))
     (fail 'textual->utf16))
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122)
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122)
+                '#u8(255 254 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122 0))
             (textual->utf16 (as-text "xxxabcyyyzzz") 3))
     (fail 'textual->utf16))
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122)
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122)
+                '#u8(255 254 97 0 98 0 99 0 121 0 121 0 121 0 122 0 122 0 122 0))
             (textual->utf16 "xxxabcyyyzzz" 3))
     (fail 'textual->utf16))
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99)
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99)
+                '#u8(255 254 97 0 98 0 99 0))
             (textual->utf16 (as-text "xxxabcyyyzzz") 3 6))
     (fail 'textual->utf16))
 
-(or (equal? '#u8(254 255 0 97 0 98 0 99)
+(or (equal? (if (eq? assumed-endianness 'big)
+                '#u8(254 255 0 97 0 98 0 99)
+                '#u8(255 254 97 0 98 0 99 0))
             (textual->utf16 "xxxabcyyyzzz" 3 6))
     (fail 'textual->utf16))
 

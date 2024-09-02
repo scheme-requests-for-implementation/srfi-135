@@ -2345,7 +2345,7 @@ In other words, <code>textual-fold</code> obeys the (tail) recursion
 </p>
 <pre class="code-example">
   (textual-fold <var>kons</var> <var>knil</var> <var>textual</var> <var>start</var> <var>end</var>)
-= (textual-fold <var>kons</var> (<var>kons</var> <var>textual</var>[<var>start</var>] <var>knil</var>) <var>start+1</var> <var>end</var>)
+= (textual-fold <var>kons</var> (<var>kons</var> <var>textual</var>[<var>start</var>] <var>knil</var>) <var>textual</var> <var>start+1</var> <var>end</var>)
 </pre>
 <p>
 The <code>textual-fold-right</code> procedure maps <var>kons</var> across the
@@ -2363,7 +2363,7 @@ obeying the (tail) recursion
 </p>
 <pre class="code-example">
   (textual-fold-right <var>kons</var> <var>knil</var> <var>textual</var> <var>start</var> <var>end</var>)
-= (textual-fold-right <var>kons</var> (<var>kons</var> <var>textual</var>[<var>end-1</var>] <var>knil</var>) <var>start</var> <var>end-1</var>)
+= (textual-fold-right <var>kons</var> (<var>kons</var> <var>textual</var>[<var>end-1</var>] <var>knil</var>) <var>textual</var> <var>start</var> <var>end-1</var>)
 </pre>
 
 <p>

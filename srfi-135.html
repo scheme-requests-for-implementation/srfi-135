@@ -191,7 +191,7 @@ William D Clinger
 <li><a href="#Rationale">Rationale</a></li>
 <li><a href="#Specification">Specification</a>
   <ul>
-  <li><a href="#Specification">Concepts</a>
+  <li><a href="#Concepts">Concepts</a>
     <ul>
       <li><a href="#LibraryName">Name of library</a></li>
       <li><a href="#ConceptualModel">Conceptual model</a></li>
@@ -202,8 +202,7 @@ William D Clinger
       <li><a href="#NamingConventions">Naming conventions</a></li>
       <li><a href="#PerformanceRequirements">Performance requirements</a></li>
       <li><a href="#Unicode">Unicode</a></li>
-    </ul>
-</li>
+    </ul></li></ul></li>
   <li><a href="#Notation">Notation</a></li>
   <li><a href="#Procedures">Procedures</a>
     <ul>
@@ -415,7 +414,6 @@ Here is a list of the procedures provided by this SRFI:
 
 <!--========================================================================-->
 <h1><a name="Rationale">Rationale</a></h1>
-<p>
 
 <p>
 The
@@ -517,7 +515,7 @@ immutable texts instead.
 <h1><a name="Specification">Specification</a></h1>
 
 
-<h2>Basic concepts</h2>
+<h2 id="Concepts">Basic concepts</h2>
 
 <h3><a name="LibraryName">Name of library</a></h3>
 
@@ -992,6 +990,7 @@ brackets, as well. So, for example, the procedure with signature
 <pre class="code-example">
 halts? <var>f [x init-store]</var> → <var>[boolean integer]</var>
 </pre>
+<p>
 would take one (<var>f</var>), two (<var>f</var>, <var>x</var>) 
 or three (<var>f</var>, <var>x</var>, <var>init-store</var>) input arguments, 
 and return two values, a boolean and an integer.
@@ -1008,6 +1007,7 @@ while the procedure with signature
 <pre class="code-example">
 spell-check <var>doc dict<sub>1</sub> dict<sub>2</sub> ...</var> → <var>string-list</var>
 </pre>
+<p>
 takes two required arguments 
 (<var>doc</var> and <var>dict<sub>1</sub></var>) 
 and zero or more optional arguments (<var>dict<sub>2</sub> ...</var>).
@@ -1095,7 +1095,7 @@ and might even vary from call to call.
     if <var>pred</var> returns true, <code>textual-any</code>
     does not call <var>pred</var> on subsequent characters;
     Both procedures are "witness-generating":
-  </o>
+  </p>
 
     <ul>
       <li> If <code>textual-every</code> is given an empty interval
@@ -1850,10 +1850,10 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <code class="proc-def">textual&gt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defi">
-<code class="proc-def">textual&lt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&lt;=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defn">
-<code class="proc-def">textual&gt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual&gt;=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dd class="proc-def">
     These procedures return <code>#t</code> if their arguments
@@ -1932,10 +1932,10 @@ by <code>text-unfold</code> to be limited by limits on stack size.
 <code class="proc-def">textual-ci&gt;?&nbsp;</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defi">
-<code class="proc-def">textual-ci&lt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual-ci&lt;=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dt class="proc-defn">
-<code class="proc-def">textual-ci&gt=?</code><var> textual1 textual2 textual3 ... → boolean</var>
+<code class="proc-def">textual-ci&gt;=?</code><var> textual1 textual2 textual3 ... → boolean</var>
 </dt>
 <dd class="proc-def">
     These procedures behave as though they had called
@@ -2926,7 +2926,7 @@ http://www.lispworks.com/documentation/HyperSpec/Front/index.htm</a>.
     <a href="https://srfi.schemers.org/srfi-130/">http://srfi.schemers.org/srfi-130/</a>
 </dd>
 
-<dt class=biblio><strong><a name="SRFI-130">[DesignNotes]</a></strong>
+<dt class=biblio><strong><a name="SRFI-130-design-notes">[DesignNotes]</a></strong>
 <dd>
     W. D. Clinger. <br>
     <a href="https://github.com/larcenists/larceny/wiki/ImmutableTexts">Immutable texts.</a> <br>
@@ -2935,7 +2935,7 @@ http://www.lispworks.com/documentation/HyperSpec/Front/index.htm</a>.
     SRFI is finalized.)
 </dd>
 
-<dt class=biblio><strong><a name="Unicode">[Unicode]</a></strong>
+<dt class=biblio><strong><a name="Unicode-site">[Unicode]</a></strong>
 <dd>
     The Unicode Consortium.
     Unicode.

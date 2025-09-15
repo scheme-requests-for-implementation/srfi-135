@@ -1,102 +1,32 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Immutable Texts</title>
-    <link href="/admin.css" rel="stylesheet">
-    <link href="/list.css" rel="stylesheet">
-    <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="text/x-mathjax-config">
-     MathJax.Hub.Config({
-       tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
-     });
-    </script>
-    <script crossorigin="anonymous" integrity=
-            "sha384-Ra6zh6uYMmH5ydwCqqMoykyf1T/+ZcnOQfFPhDrp2kI4OIxadnhsvvA2vv9A7xYv" src=
-            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-            type="text/javascript"></script>
-  </head>
-
-  <body>
-    <h1>SRFI 135: Immutable Texts</h1>
-    <p class="authors">by William D Clinger</p>
-    <p class="based-on"></p>
-    <p class="status">status: <em>final</em> (2016-09-06)</p>
-    <p class="keywords">keywords: <a href="https://srfi.schemers.org/?keywords=data-structure">Data Structure</a>, <a href="https://srfi.schemers.org/?keywords=r7rs-large">R7RS Large</a>, <a href="https://srfi.schemers.org/?keywords=r7rs-large-red">R7RS Large: Red Edition</a></p><span class="see-also">See also <a href="/srfi-118/">SRFI 118: Simple adjustable-size strings</a>, <a href="/srfi-130/">SRFI 130: Cursor-based string library</a>, <a href="/srfi-140/">SRFI 140: Immutable Strings</a>, and <a href="/srfi-152/">SRFI 152: String Library (reduced)</a>.</span>
-
-    <ul class="info">
-      <li><a href="srfi-135.html">The SRFI Document</a></li>
-      <li><a href="https://srfi-email.schemers.org/srfi-135/">Discussion Archive</a></li>
-      <li><a href="https://github.com/scheme-requests-for-implementation/srfi-135">Git repo (on Github)</a></li>
-      <li>
-        <a href="mailto:srfi-135@srfi.schemers.org">srfi-135@<span class="antispam">nospam</span>srfi.schemers.org (subscribers only)</a></li>
-      <li>
-        <span class="firefox-column-workaround">
-          <form method="POST" action="https://www.simplelists.com/subscribe.php">
-            <div class="title">Subscribe to srfi-135 mailing list</div>
-            <input name="email"
-                   placeholder="email address"
-                   tabindex="1"
-                   type="email" >
-            <input name="name"
-                   placeholder="full name"
-                   tabindex="2"
-                   type="text" >
-            <p>
-              <input id="sub-digest"
-                     name="digest"
-                     tabindex="3"
-                     type="checkbox"
-                     value="digest" >
-              <label for="sub-digest">daily digest?</label></p>
-            <input class="submit"
-                   name="submit"
-                   tabindex="4"
-                   type="submit"
-                   value="Subscribe to srfi-135" >
-            <input type="hidden" name="action" value="subscribe">
-            <input type="hidden" name="list" value="srfi-135@srfi.schemers.org"></form></a></li>
-      <li>
-        <span class="firefox-column-workaround">
-          <form method="POST" action="https://www.simplelists.com/subscribe.php">
-            <p class="title">Unsubscribe from srfi-135 mailing list</p>
-            <input name="email"
-                   placeholder="email address"
-                   tabindex="5"
-                   type="email" >
-            <input class="submit"
-                   name="submit"
-                   tabindex="6"
-                   type="submit"
-                   value="Unsubscribe from srfi-135" >
-            <input name="action"
-                   type="hidden"
-                   value="unsubscribe" >
-            <input name="list"
-                   type="hidden"
-                   value="srfi-135@srfi.schemers.org"></form></a></li></ul>
-    <h2>Abstract</h2>      <p>In Scheme, strings are a mutable data type.
-      Although it "is an error" (<abbr title="Revised&lt;sup&gt;5&lt;/sup&gt; Report on Scheme">R5RS</abbr> and
-      <abbr title="Revised&lt;sup&gt;7&lt;/sup&gt; Report on Scheme">R7RS</abbr>) to use
-      <code>string-set!</code> on literal strings or on strings returned by
-      <code>symbol-&gt;string</code>, and any attempt to do so "should raise an
-      exception" (<abbr title="Revised&lt;sup&gt;6&lt;/sup&gt; Report on Scheme">R6RS</abbr>), all
-      other strings are mutable.
-      <p>Although many mutable strings are never
-      actually mutated, the mere possibility of mutation complicates
-      specifications of libraries that use strings, encourages precautionary
-      copying of strings, and precludes structure sharing that could otherwise
-      be used to make procedures such as <code>substring</code> and
-      <code>string-append</code> faster and more space-efficient.
-      <p>This <abbr title="Scheme Request for Implementation">SRFI</abbr> specifies a new data type
-      of immutable texts. It comes with efficient and portable sample
-      implementations that guarantee O(1) indexing for both sequential and
-      random access, even in systems whose <code>string-ref</code> procedure
-      takes linear time.
-      <p>The operations of this new data type include
-      analogues for all of the non-mutating operations on strings specified by
-      the R7RS and most of those specified by <abbr title="String cursors"><a href="https://srfi.schemers.org/srfi-130/">SRFI 130</a></abbr>, but the
-      immutability of texts and uniformity of character-based indexing simplify
-      the specification of those operations while avoiding several
-      inefficiencies associated with the mutability of Scheme's strings.</body></html>
+    <head>
+      <!-- SPDX-FileCopyrightText: 2025 Arthur A. Gleckler -->
+      <!-- SPDX-License-Identifier: MIT -->
+      <title>Immutable Texts</title>
+      <link href="/admin.css" rel="stylesheet">
+      <link href="/list.css" rel="stylesheet">
+      <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <script type="text/x-mathjax-config">MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
+      <script crossorigin="anonymous" integrity="sha384-Ra6zh6uYMmH5ydwCqqMoykyf1T/+ZcnOQfFPhDrp2kI4OIxadnhsvvA2vv9A7xYv" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script></head>
+    <body>
+      <h1>SRFI 135: Immutable Texts</h1>
+      <p class="authors">by William D Clinger</p>
+      <p class="based-on"></p>
+      <p class="status">status: <em>final</em> (2016-09-06)</p>
+      <p class="keywords">keywords: <a href="https://srfi.schemers.org/?keywords=data-structure">Data Structure</a>, <a href="https://srfi.schemers.org/?keywords=r7rs-large">R7RS Large</a>, <a href="https://srfi.schemers.org/?keywords=r7rs-large-red">R7RS Large: Red Edition</a>, <a href="https://srfi.schemers.org/?keywords=text">Text</a></p><span class="see-also">See also <a href="/srfi-118/">SRFI 118: Simple adjustable-size strings</a>, <a href="/srfi-130/">SRFI 130: Cursor-based string library</a>, <a href="/srfi-140/">SRFI 140: Immutable Strings</a>, and <a href="/srfi-152/">SRFI 152: String Library (reduced)</a>.</span>
+      <ul class="info">
+        <li><a href="srfi-135.html">The SRFI Document</a></li>
+        <li><a href="https://srfi-email.schemers.org/srfi-135/">Discussion Archive</a></li>
+        <li><a href="https://github.com/scheme-requests-for-implementation/srfi-135">Git repo (on GitHub)</a></li>
+        <li><a href="mailto:srfi-135@srfi.schemers.org">srfi-135@<span class="antispam">nospam</span>srfi.schemers.org (subscribers only)</a></li>
+        <li><span class="firefox-column-workaround">
+            <form method="POST" action="https://www.simplelists.com/subscribe.php">
+              <div class="title">Subscribe to srfi-135 mailing list</div><input name="email" placeholder="email address" tabindex="1" type="email"><input name="name" placeholder="full name" tabindex="2" type="text">
+              <p><input id="sub-digest" name="digest" tabindex="3" type="checkbox" value="digest"><label for="sub-digest">daily digest?</label></p><input class="submit" name="submit" tabindex="4" type="submit" value="Subscribe to srfi-135"><input type="hidden" name="action" value="subscribe"><input type="hidden" name="list" value="srfi-135@srfi.schemers.org"></form></span></li>
+        <li><span class="firefox-column-workaround">
+            <form method="POST" action="https://www.simplelists.com/subscribe.php">
+              <div class="title">Unsubscribe from srfi-135 mailing list</div><input name="email" placeholder="email address" tabindex="5" type="email"><input class="submit" name="submit" tabindex="6" type="submit" value="Unsubscribe from srfi-135"><input type="hidden" name="action" value="unsubscribe"><input name="list" type="hidden" value="srfi-135@srfi.schemers.org"></form></span></li></ul>
+      <h2>Abstract</h2>      <p>In Scheme, strings are a mutable data type.       Although it "is an error" (<abbr title="Revised&lt;sup&gt;5&lt;/sup&gt; Report on Scheme">R5RS</abbr> and       <abbr title="Revised&lt;sup&gt;7&lt;/sup&gt; Report on Scheme">R7RS</abbr>) to use       <code>string-set!</code> on literal strings or on strings returned by       <code>symbol-&gt;string</code>, and any attempt to do so "should raise an       exception" (<abbr title="Revised&lt;sup&gt;6&lt;/sup&gt; Report on Scheme">R6RS</abbr>), all       other strings are mutable.       <p>Although many mutable strings are never       actually mutated, the mere possibility of mutation complicates       specifications of libraries that use strings, encourages precautionary       copying of strings, and precludes structure sharing that could otherwise       be used to make procedures such as <code>substring</code> and       <code>string-append</code> faster and more space-efficient.       <p>This <abbr title="Scheme Request for Implementation">SRFI</abbr> specifies a new data type       of immutable texts. It comes with efficient and portable sample       implementations that guarantee O(1) indexing for both sequential and       random access, even in systems whose <code>string-ref</code> procedure       takes linear time.       <p>The operations of this new data type include       analogues for all of the non-mutating operations on strings specified by       the R7RS and most of those specified by <abbr title="String cursors"><a href="https://srfi.schemers.org/srfi-130/">SRFI 130</a></abbr>, but the       immutability of texts and uniformity of character-based indexing simplify       the specification of those operations while avoiding several       inefficiencies associated with the mutability of Scheme's strings.</body></html>
